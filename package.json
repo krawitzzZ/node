@@ -1,15 +1,20 @@
 {
-  "name": "jsninja-creation-demo",
-  "version": "1.0.0",
-  "description": "Demo project for stream",
+  "name": "NodeJS-app",
+  "version": "0.0.1",
+  "description": "Demo NodeJS app",
   "main": "index.js",
-  "author": "Illya Klymov <illya@javascript.ninja>",
   "license": "MIT",
   "scripts": {
     "start": "rimraf ./dist && babel -d ./dist ./src -s && node dist/main.js",
     "dev": "node dev.js",
     "lint:js": "eslint ./src",
     "lint-staged": "lint-staged"
+  },
+  "dependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-core": "^6.23.1",
+    "babel-preset-env": "^1.1.11",
+    "rimraf": "^2.6.1"
   },
   "devDependencies": {
     "babel-register": "^6.23.0",
@@ -20,6 +25,7 @@
     "lint-staged": "^3.3.1",
     "pre-commit": "^1.2.2"
   },
+  "pre-commit": "lint-staged",
   "lint-staged": {
     "*.js": "eslint"
   },
@@ -32,13 +38,6 @@
     "env": {
       "node": true
     }
-  },
-  "pre-commit": "lint-staged",
-  "dependencies": {
-    "babel-cli": "^6.23.0",
-    "babel-core": "^6.23.1",
-    "babel-preset-env": "^1.1.11",
-    "rimraf": "^2.6.1"
   },
   "babel": {
     "presets": [
