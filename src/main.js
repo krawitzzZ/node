@@ -1,7 +1,8 @@
 import net from 'net';
 import config from './config';
-import { clearConsole, newDebug } from './utils';
-import { lineFeedUTF, doubleLineFeed, staticFolder } from './utils/constants';
+import { clearConsole, newDebug, parseHeaders } from './utils';
+import { handleIndex, handleFavicon, handleRequest } from './utils/handlers';
+import { doubleLineFeed, staticFolder, rootUrl, faviconUrl } from './utils/constants';
 
 const debug = newDebug('app');
 const server = net.createServer();
@@ -11,32 +12,28 @@ server.on('connection', socket => {
 
   socket.on('data', chunk => {
     buffer = Buffer.concat([buffer, chunk], buffer.length + chunk.length);
-
     const isLastChunk = buffer.includes(doubleLineFeed);
 
     if (!isLastChunk) {
       return;
     }
 
-    const req = buffer.toString('utf-8').split(lineFeedUTF);
-    const [method, path, httpV] = req[0].split(' ');
-    const headersArray = req
-      .slice(1, req.indexOf(lineFeedUTF) - 1)
-      .map(header => header.split(': '));
-    const headers = new Map(headersArray);
-
+    const { headers, url } = parseHeaders(buffer);
+    const requestedUrl = `${staticFolder}${url}`;
     debug(`Received headers are:`, false);
     debug(headers);
-    debug(method);
-    debug(httpV);
-    debug(path);
-    debug(staticFolder);
 
-    socket.end('ok');
-  });
+    if (requestedUrl === faviconUrl) {
+      handleFavicon(socket);
+      return;
+    }
 
-  socket.on('end', () => {
-    debug('connection closed');
+    if (requestedUrl === rootUrl) {
+      handleIndex(socket);
+      return;
+    }
+
+    handleRequest(socket, requestedUrl);
   });
 
   socket.on('error', err => {
