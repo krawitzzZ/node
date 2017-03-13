@@ -8,7 +8,7 @@ import {
   faviconUrl,
 } from '../utils/constants';
 
-const debug = newDebug('handlers');
+const debug = newDebug('app:handlers');
 
 export const handleError = (socket, error) => {
   debug(error);
@@ -24,18 +24,15 @@ export const handleError = (socket, error) => {
 
 export const handleFavicon = socket => {
   fs.readFile(faviconUrl)
-    .catch(err => handleError(socket, err))
-    .then(data => writeResponse(socket, faviconUrl, data))
+    .then(data => writeResponse(socket, faviconUrl, data), err => handleError(socket, err));
 };
 
 export const handleIndex = socket => {
   fs.readFile(indexUrl)
-    .catch(err => handleError(socket, err))
-    .then(data => writeResponse(socket, indexUrl, data))
+    .then(data => writeResponse(socket, indexUrl, data), err => handleError(socket, err));
 };
 
 export const handleRequest = (socket, url) => {
   fs.readFile(url)
-    .catch(err => handleError(socket, err))
-    .then(data => writeResponse(socket, url, data))
+    .then(data => writeResponse(socket, url, data), err => handleError(socket, err));
 };
