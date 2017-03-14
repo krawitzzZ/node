@@ -1,8 +1,8 @@
 import EventEmitter from 'events';
 import net from 'net';
-import { newDebug, parseHeaders } from '../utils';
-import { handleIndex, handleFavicon, handleRequest } from '../utils/handlers';
-import { doubleLineFeed, staticFolder, rootUrl, faviconUrl } from '../utils/constants';
+import HttpRequest from './httpRequest';
+import HttpResponse from './httpResponse';
+import { newDebug } from '../utils';
 
 const debug = newDebug('app:http');
 
@@ -13,39 +13,16 @@ class HttpServer extends EventEmitter {
     this.server = net.createServer();
 
     this.server.on('connection', socket => {
-      this.emit('request', socket);
+      const request = new HttpRequest(socket);
+      const response = new HttpResponse(socket);
 
-      let buffer = Buffer.alloc(0);
-
-      socket.on('data', chunk => {
-        buffer = Buffer.concat([buffer, chunk], buffer.length + chunk.length);
-        const isLastChunk = buffer.includes(doubleLineFeed);
-
-        if (!isLastChunk) {
-          return;
-        }
-
-        const { headers, url } = parseHeaders(buffer);
-        const requestedUrl = `${staticFolder}${url}`;
-        debug(`Received headers are:`, false);
-        debug(headers);
-
-        if (requestedUrl === faviconUrl) {
-          handleFavicon(socket);
-          return;
-        }
-
-        if (requestedUrl === rootUrl) {
-          handleIndex(socket);
-          return;
-        }
-
-        handleRequest(socket, requestedUrl);
+      request.on('headers', () => {
+        this.emit('request', request, response);
       });
 
       socket.on('error', err => {
-        debug('error occurred', false);
         debug(err);
+        this.emit('error', err);
       });
     });
   }

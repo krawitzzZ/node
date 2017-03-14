@@ -1,38 +1,44 @@
-import fs from 'mz/fs';
-import { newDebug, writeResponse, writeErrorResponse } from '../utils';
-import {
-  badRequestResponse,
-  forbiddenResponse,
-  notFoundResponse,
-  indexUrl,
-  faviconUrl,
-} from '../utils/constants';
+import { newDebug, getRequestedUrl, writeResponse } from '../utils';
+import { rootUrl, indexUrl, faviconUrl } from '../utils/constants';
 
 const debug = newDebug('app:handlers');
 
-export const handleError = (socket, error) => {
+export const handleError = (error, req, res) => {
   debug(error);
+  res.setHeader('Content-Type', 'text/plain');
   switch (error.code) {
     case 'ENOENT':
-      return writeErrorResponse(socket, notFoundResponse);
+      res.writeHead(404);
+      return res.end('Not Found');
     case 'EACCES':
-      return writeErrorResponse(socket, forbiddenResponse);
+      res.writeHead(403);
+      return res.end('Access Denied');
     default:
-      return writeErrorResponse(socket, badRequestResponse);
+      res.writeHead(400);
+      return res.end('Bad Request');
   }
 };
 
-export const handleFavicon = socket => {
-  fs.readFile(faviconUrl)
-    .then(data => writeResponse(socket, faviconUrl, data), err => handleError(socket, err));
+export const handleFavicon = (req, res) => {
+  writeResponse(req, res, faviconUrl, handleError);
 };
 
-export const handleIndex = socket => {
-  fs.readFile(indexUrl)
-    .then(data => writeResponse(socket, indexUrl, data), err => handleError(socket, err));
+export const handleIndex = (req, res) => {
+  writeResponse(req, res, indexUrl, handleError);
 };
 
-export const handleRequest = (socket, url) => {
-  fs.readFile(url)
-    .then(data => writeResponse(socket, url, data), err => handleError(socket, err));
+export const handleRequest = (req, res) => {
+  const url = getRequestedUrl(req.url);
+
+  if (url === faviconUrl) {
+    handleFavicon(req, res);
+    return;
+  }
+
+  if (url === rootUrl) {
+    handleIndex(req, res);
+    return;
+  }
+
+  writeResponse(req, res, url, handleError);
 };

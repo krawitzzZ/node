@@ -1,9 +1,20 @@
 import http from './modules/http';
 import config from './config';
 import { newDebug, clearConsole } from './utils';
+import { handleRequest } from './utils/handlers';
 
 const debug = newDebug('app:main');
 const server = http.createServer();
+
+server.on('request', (req, res) => {
+  if (req.method === 'POST') {
+    res.writeHead(400);
+    res.end('METHOD NOT ALLOWED');
+    return;
+  }
+
+  handleRequest(req, res);
+});
 
 server.listen(config.port, err => {
   if (err) {
