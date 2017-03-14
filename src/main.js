@@ -4,7 +4,7 @@ import { clearConsole, newDebug, parseHeaders } from './utils';
 import { handleIndex, handleFavicon, handleRequest } from './utils/handlers';
 import { doubleLineFeed, staticFolder, rootUrl, faviconUrl } from './utils/constants';
 
-const debug = newDebug('app');
+const debug = newDebug('app:main');
 const server = net.createServer();
 
 server.on('connection', socket => {
@@ -20,6 +20,8 @@ server.on('connection', socket => {
 
     const { headers, url } = parseHeaders(buffer);
     const requestedUrl = `${staticFolder}${url}`;
+    debug(`Requested path is:`, false);
+    debug(url);
     debug(`Received headers are:`, false);
     debug(headers);
 

@@ -8,7 +8,7 @@ import {
   faviconUrl,
 } from '../utils/constants';
 
-const debug = newDebug('handlers');
+const debug = newDebug('app:handlers');
 
 export const handleError = (socket, error) => {
   debug(error);
