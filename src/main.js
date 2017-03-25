@@ -7,13 +7,17 @@ const debug = newDebug('app:main');
 const server = http.createServer();
 
 server.on('request', (req, res) => {
-  if (req.method === 'POST') {
+  if (req.method !== 'GET') {
     res.writeHead(400);
     res.end('METHOD NOT ALLOWED');
     return;
   }
 
   handleRequest(req, res);
+});
+
+server.on('error', err => {
+  debug(err);
 });
 
 server.listen(config.port, err => {

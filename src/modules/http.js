@@ -20,8 +20,21 @@ class HttpServer extends EventEmitter {
         this.emit('request', request, response);
       });
 
+      request.on('error', err => {
+        this.emit('error', err);
+      });
+
+      response.on('error', err => {
+        this.emit('error', err);
+      });
+
       socket.on('error', err => {
-        debug(err);
+        if (err.code === 'ECONNRESET') {
+          debug('Connection refused', false);
+          debug(err.code);
+          return;
+        }
+
         this.emit('error', err);
       });
     });

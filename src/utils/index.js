@@ -21,7 +21,6 @@ export const newDebug = name => {
     }
 
     privateDebug(data);
-    privateDebug('');
   };
 
   return debug;
