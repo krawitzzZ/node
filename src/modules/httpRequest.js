@@ -22,7 +22,7 @@ export default class HttpRequest extends stream.Readable {
   }
 
   _read() {
-    this.socket.resume();
+    this.resume();
   }
 
   parseHeaders() {
@@ -58,7 +58,7 @@ export default class HttpRequest extends stream.Readable {
       return;
     }
 
-    this.socket.pause();
-    this.socket.push(chunk);
+    this.pause();
+    this.push(chunk);
   }
 }
