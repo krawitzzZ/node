@@ -6,7 +6,7 @@ import { newDebug } from '../utils';
 
 const debug = newDebug('app:http');
 
-class HttpServer extends EventEmitter {
+export class HttpServer extends EventEmitter {
   constructor(props) {
     super(props);
 
@@ -18,14 +18,6 @@ class HttpServer extends EventEmitter {
 
       request.on('headers', () => {
         this.emit('request', request, response);
-      });
-
-      request.on('error', err => {
-        this.emit('error', err);
-      });
-
-      response.on('error', err => {
-        this.emit('error', err);
       });
 
       socket.on('error', err => {
@@ -42,6 +34,10 @@ class HttpServer extends EventEmitter {
 
   listen(port, callback) {
     this.server.listen(port, callback);
+  }
+
+  close() {
+    this.server.close();
   }
 }
 

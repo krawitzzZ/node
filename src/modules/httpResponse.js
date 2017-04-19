@@ -1,19 +1,24 @@
-import stream from 'stream';
+import { Writable } from 'stream';
 import { getDefaultHeaders, getStatusText } from '../utils';
 import { okResponse, lineFeedUTF } from '../utils/constants';
 
-const headers = Symbol('headers');
-const statusLine = Symbol('statusLine');
 const send = Symbol('send');
 
-export default class HttpResponse extends stream.Writable {
+export default class HttpResponse extends Writable {
   constructor(socket) {
     super();
 
     this.socket = socket;
     this.headerSent = false;
-    this[headers] = getDefaultHeaders();
-    this[statusLine] = okResponse;
+    this.headers = getDefaultHeaders();
+    this.statusLine = okResponse;
+
+    this.socket.on('close', () => this.emit('close'));
+    this.socket.on('finish', () => this.emit('finish'));
+    this.socket.on('drain', () => this.emit('drain'));
+    this.socket.on('error', () => this.emit('error'));
+    this.socket.on('pipe', () => this.emit('pipe'));
+    this.socket.on('unpipe', () => this.emit('unpipe'));
   }
 
   _write(chunk, encoding = 'utf-8', callback) {
@@ -36,10 +41,10 @@ export default class HttpResponse extends stream.Writable {
       return;
     }
 
-    let headersToSend = `${this[statusLine]}`;
+    let headersToSend = `${this.statusLine}`;
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const [key, value] of this[headers].entries()) {
+    for (const [key, value] of this.headers.entries()) {
       headersToSend += `${key}: ${value}${lineFeedUTF}`;
     }
 
@@ -54,17 +59,22 @@ export default class HttpResponse extends stream.Writable {
       return;
     }
 
+    if (typeof code !== 'number') {
+      this.emit('error', new Error('Status code should be number'));
+      return;
+    }
+
     const statusText = getStatusText(code);
-    this[statusLine] = `HTTP/1.1 ${code} ${statusText}${lineFeedUTF}`;
+    this.statusLine = `HTTP/1.1 ${code} ${statusText}${lineFeedUTF}`;
   }
 
   setHeader(header, value) {
     if (this.headerSent) {
-      this.emit('error', new Error('Headers already sent'));
+      this.emit('error', new Error('Could not set headers after they were sent'));
       return;
     }
 
-    this[headers].set(header, value);
+    this.headers.set(header, value);
   }
 
   end(data) {

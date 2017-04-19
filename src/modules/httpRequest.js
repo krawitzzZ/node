@@ -1,4 +1,4 @@
-import stream from 'stream';
+import { Readable } from 'stream';
 import { parseHeaders } from '../utils';
 import { doubleLineFeed } from '../utils/constants';
 
@@ -6,7 +6,7 @@ const state = Symbol('state');
 const HEADERS_STATE = 0;
 const BODY_STATE = 1;
 
-export default class HttpRequest extends stream.Readable {
+export default class HttpRequest extends Readable {
   constructor(socket) {
     super();
 
@@ -19,6 +19,9 @@ export default class HttpRequest extends stream.Readable {
     this.headerParseCounter = 0;
 
     this.socket.on('data', this.onData.bind(this));
+    this.socket.on('close', () => this.emit('close'));
+    this.socket.on('error', () => this.emit('end'));
+    this.socket.on('readable', () => this.emit('readable'));
   }
 
   _read() {
